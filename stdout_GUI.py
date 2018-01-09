@@ -22,6 +22,12 @@ import Tkinter
 # program functions
 ###############################################################################
 
+
+
+################################################################################
+#############Incomplete module based on functions found on the internet#########
+################    I do not claim this to be my work   ########################
+################################################################################
 """
 root = Tk()  # open GUI
 root.title('Shiftboard Handler')  # title
