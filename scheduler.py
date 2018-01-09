@@ -9,6 +9,9 @@ Date:       Jan 4th 2018
 
 mru(most recent update):
 Jan 7th 2018 - added today_time
+Jan 9th 2018 - added date_to_short_hour
+             - updated get_desired_shift_dates to output a tuple of starttime and endtime
+             - added datetime_tuple_to_string_format
 
 """
 ###############################################################################
@@ -16,7 +19,7 @@ Jan 7th 2018 - added today_time
 from datetime import datetime, timedelta
 
 # program variables
-shifts_list = []  # list with dates and times formated in datetime format
+# list with dates and times formated in datetime format
 debugMode = False
 
 # user variables
@@ -33,6 +36,20 @@ desiredShifts = {'Sun': [],
 ###############################################################################
 # program functions
 ###############################################################################
+
+# function to convert datetime tuple to string format
+# returns a string
+
+
+def datetime_tuple_to_string_format(datetime_tuple):
+    start_date = datetime_tuple[0].strftime("%b %d %Y %I%p")
+    end_date = datetime_tuple[1].strftime("%b %d %Y %I%p")
+    return start_date + " to " + end_date
+
+
+# function to format date to shart am pm format
+def date_to_short_hour(date_and_time):
+    return date_and_time.strftime("%I%p").lower().lstrip("0")
 
 
 # function that converts date to tuple
@@ -54,8 +71,10 @@ def today_time(_hour, _minute):
 
 
 # function to get dates of desired shifts delta weeks from now
-# returns list of datetimes, returns just the start times
+# returns list of datetimes, returns tuple of startime and endtime
 def get_desired_shift_dates(schedule_dict, delta):
+    # variable to hold output
+    shifts_list = []
     # get time now
     timeNow = datetime.now()
     # add delta weeks to date
@@ -71,7 +90,10 @@ def get_desired_shift_dates(schedule_dict, delta):
     # find start and end times in shift times
     for startTime, endTime in shifts_of_the_day:
         # make shift list in datetime format, include just the startTime
-        shifts_list.append(datetime(desired_year, desired_month, desired_day, startTime))
+        _shiftStartTime = datetime(desired_year, desired_month, desired_day, startTime)
+        _shiftEndTime = datetime(desired_year, desired_month, desired_day, endTime)
+        tuple_shift_start_end = (_shiftStartTime, _shiftEndTime)
+        shifts_list.append(tuple_shift_start_end)
 
     return shifts_list
 
@@ -79,11 +101,13 @@ def get_desired_shift_dates(schedule_dict, delta):
 # function that compares list datetimes to time x weeks ahead
 # constraint: we can only grab shifts two weeks ahead of time in shiftboard
 # decrease_delta decreases times in list by seconds
-def check_if_shift_approching(schedule_list, delta, decrease_delta):
-    for time in schedule_list:
-        if (datetime.now() + timedelta(weeks=delta)) >= (time - timedelta(seconds=decrease_delta)):
+def check_if_shift_approching(schedule_list_of_tuples, delta, decrease_delta):
+    for time in schedule_list_of_tuples:
+        shiftStartTime = time[0]
+        shiftEndTime = time[1]
+        if (datetime.now() + timedelta(weeks=delta)) >= (shiftStartTime - timedelta(seconds=decrease_delta)):
             time_on_this_date = (timedelta(weeks=delta) + datetime.now())
-            print("Grabbing time approaching E.A.T. = " + str(time - time_on_this_date))
+            print("Grabbing time approaching for " + date_to_short_hour(shiftStartTime) + "-" + date_to_short_hour(shiftEndTime) + " E.A.T. = " + str(shiftStartTime - time_on_this_date))
             return time
         else:
             # troubleshooting

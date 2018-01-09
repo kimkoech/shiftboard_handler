@@ -8,6 +8,7 @@ Date:       Jan 4th 2018
 mru(most recent update):
 Jan 8th 2018    - deleted one of the .rstrip() from remove_extras
                 - added write_non_string_data function
+                - added print statements to start_log() and stop_log()
 
 """
 ###############################################################################
@@ -17,17 +18,20 @@ import pickle  # module for writing non-string data to files
 import sys  # module to print to log file
 
 # program variables
-debugMode = True  # troubleshooting
+debugMode = False  # troubleshooting
+recordMode = (not debugMode)  # mode for using this module to write to file
 ORIG_STDOUT = sys.stdout
 logfile = 'logfile.log'
+recordFile = 'record_file.txt'
+takenShiftFile = 'taken_shifts.txt'
+dailyShiftStore = 'daily_shift_store.txt'
+secret_file = 'secret.data'
+
 logger = open(logfile, 'a')
 
 # user variables
 if debugMode:
-    takenShiftFile = 'taken_shifts.txt'
-    dailyShiftStore = 'daily_shift_store.txt'
-    secret_file = 'secret.data'
-
+    pass
 else:
     pass
 
@@ -84,6 +88,7 @@ def retrieve_datetime_from_file(file_name):
 
 
 # function to write non-string data to a file
+# overwrites file every time
 def write_data(file_name, _data):
     my_file = open(file_name, "w")
     pickle.dump(_data, my_file)
@@ -91,6 +96,7 @@ def write_data(file_name, _data):
 
 
 # function to load non-string data from a file
+# raises EOFError if file is empty
 def load_data(file_name):
     my_file = open(file_name, "r")
     _output = pickle.load(my_file)
@@ -101,17 +107,40 @@ def load_data(file_name):
 def clear_data_file(file_name):
     open(file_name, "w").close()
 
+
+# function to append data to a file
+def append_data(file_name, _data):
+    my_file = open(file_name, "a")
+    pickle.dump(_data, my_file)
+    my_file.close()
+
+
+# function to retrieve objects from data file
+# returns a list of objects in file
+def data_file_to_list(file_name):
+    my_file = open(file_name, "r")
+    objs = []
+    while True:
+        try:
+            objs.append(pickle.load(my_file))
+        except EOFError:
+            break
+    return objs
+
+
 # function to redirect print statement to a log file
-
-
 def start_log():
+    print("Log mode active. Redirecting ouput to logfile")
     sys.stdout = logger
+    print("\n New log session : " + datetime.now().strftime("%b %d %Y %I:%M:%S %p") + "\n")
 
 # function to turn of logging
 
 
 def stop_log():
+    print("\n End of log session : " + datetime.now().strftime("%b %d %Y %I:%M:%S %p") + "\n")
     sys.stdout = ORIG_STDOUT
+    print("Log mode deactivated : " + datetime.now().strftime("%b %d %Y %I:%M:%S %p") + "\n")
     logger.close()
 
 
@@ -164,7 +193,24 @@ def main():
 
     else:
         pass
+
     stop_log()
+    if recordMode:
+        # clear shift file and add custom data
+        clear_data_file(takenShiftFile)
+        test_tuple = (datetime(2018, 1, 23, 11), datetime(2018, 1, 23, 12))
+        test_tuple2 = (datetime(2018, 1, 23, 12), datetime(2018, 1, 23, 13))
+        append_data(takenShiftFile, test_tuple)
+        append_data(takenShiftFile, test_tuple2)
+        print("Printing data from " + takenShiftFile + " by data_file_to_list \n")
+        print(data_file_to_list(takenShiftFile))
+
+        # clear dailyShiftStore and attemp to to open
+        print("\n Content in daily shift store : " + dailyShiftStore + "\n")
+        # clear_data_file(dailyShiftStore)
+        print(load_data(dailyShiftStore))
+    else:
+        pass
 
 
 if __name__ == '__main__':

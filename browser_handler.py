@@ -411,21 +411,25 @@ test_dateAndTime = datetime(2018,01,27,20)
 #########################################################
 
 
-def grab_shift(date_and_time, parsed_table, location_of_shift='Lab Assistance - Lamont'):
+def grab_shift(date_and_time_tuple, parsed_table, location_of_shift='Lab Assistance - Lamont'):
         # find shifts in shiftboard
     available_shifts = parsed_table  # shiftboard_parser(tableRowXpath)
+    # variable for input_starTime and input_endTime
+    inputStartTime = date_and_time_tuple[0]
+    inputEndTime = date_and_time_tuple[1]
     # extract just the date from input
-    bare_y, bare_m, bare_d = date_and_time.strftime("%Y/%m/%d").split("/")
-    plain_date = datetime(int(bare_y), int(bare_m), int(bare_d))
-    # extract  just the hour from input and format it
-    formated_hour = date_and_time.strftime("%I%p").lower().lstrip("0")
+    bare_y, bare_m, bare_d = date_to_tuple(inputStartTime)
+    plain_date = datetime(bare_y, bare_m, bare_d)
+    # extract  just the hour from inputStartTime and inputEndTime and format it
+    inputStartHour = inputStartTime.strftime("%I%p").lower().lstrip("0")
+    inputEndHour = inputEndTime.strftime("%I%p").lower().lstrip("0")
     # find shift
     if plain_date in available_shifts:
         # get shifts and shifts' info on plain_date
         dictValues = available_shifts[plain_date]
         # Handle empty dictValues
         if dictValues == []:
-            print("No shifts Today, or all shifts have already been taken")
+            print("No shifts to grab today, or all shifts have already been taken")
             return None
         else:
             pass
@@ -433,8 +437,8 @@ def grab_shift(date_and_time, parsed_table, location_of_shift='Lab Assistance - 
             # Name shiftDataRange elements for readability
             shiftStartTime = shiftDateRange[0]
             shiftEndTime = shiftDateRange[1]
-            # find shift by comparing date_and_time to shift hours
-            if (shiftStartTime == formated_hour) and (shiftLocation == location_of_shift):
+            # find shift by comparing shiftStartTime and shiftEndTime to shift hours
+            if (shiftStartTime == inputStartHour) and (shiftEndTime == inputEndHour) and (shiftLocation == location_of_shift):
                 # indicate that shift has been found
                 print(shiftStartTime + "-" + shiftEndTime + " : Match found, deploying confirm button...")
                 clickElement.click()    # click to grab shift
@@ -447,11 +451,11 @@ def grab_shift(date_and_time, parsed_table, location_of_shift='Lab Assistance - 
                 print('Confirm button deployed at: ' + datetime.now().strftime("%I:%M:%S %p"))
                 return ConfirmShift
 
-            elif (shiftStartTime is not formated_hour) and (shiftLocation is not location_of_shift):
+            elif (shiftStartTime is not inputStartHour) and (shiftEndTime is not inputEndHour) and (shiftLocation is not location_of_shift):
                 print(shiftStartTime + "-" + shiftEndTime + " : " + shiftLocation + ": Time and Location mismatch, skipping...")
             elif shiftLocation is not location_of_shift:
                 print(shiftStartTime + "-" + shiftEndTime + " : " + shiftLocation + ": Location mismatch. Input loaction is unpreferred.")
-            elif shiftStartTime is not formated_hour:
+            elif (shiftStartTime is not inputStartHour) and (shiftEndTime is not inputEndHour):
                 print(shiftStartTime + "-" + shiftEndTime + " : " + shiftLocation + ": Time mismatch. This is an error.")
             else:
                 print("Error in grab_shift function of browser_handler: None of the conditions match")

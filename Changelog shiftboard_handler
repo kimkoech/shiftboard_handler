@@ -1,0 +1,9 @@
+Changelog Jan 9th 2018
+
+Fixes and additions for shiftboard_handler
+- get_desired_shift_dates in scheduler make to ouptut tuple list  -- DONE
+- change the way dates are written and retrived by file manager, and cleared --DONE
+- change how check_if_shift_approching in scheduler processes its list of dates, ie get the first date of tuple in schedule list -- DONE
+- update every mathematical instance that uses shiftToTake in main -- DONE
+- change return value of check_if_shift_approaching in scheduler, make it return a tuple -- DONE
+- update grab_shift function to take tuple instead of single datetime --  DONE

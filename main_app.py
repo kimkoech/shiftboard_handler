@@ -6,6 +6,9 @@ Uses functions defined in the browser_handler module
 Mru:
 Jan 8th 2018    - started implementing calendar mode
                 - imported calendar_manager
+                - replaced file_manager functions from  clear_file to clear_data_fiel
+                                                        update_file to append_data
+                                                        retrieve_datetime_from_file to append_data
 """
 ###############################################################################
 # import modules
@@ -55,8 +58,12 @@ def main():
     if calendarMode:
 
         # check if record of shifts already exists in file, check date timestamp
-        storedData = FM.load_data(dailyShiftStore)
-        timestamp_storedData = storedData[0]  # never use index with an empty tuple
+        timestamp_storedData = None  # variable to hold timestamp from stored file
+        try:
+            storedData = FM.load_data(dailyShiftStore)
+            timestamp_storedData = storedData[0]  # never use index with an empty tuple
+        except EOFError:
+            pass  # do not alter value of timestamp stored data
         if (timestamp_storedData == SC.today_raw_date()):
 
             # data already exists thus retrieve shifts of the day ie index 1 of tuple
@@ -86,8 +93,8 @@ def main():
                 # check if free at shift times and add start times of shifts that work to shiftsOfTheDay
                 isFree = CLDM.check_if_free_comparator(each_shift, list_free_periods)
                 if isFree:
-                    # store start times of each shift to shiftsOfTheDay list.
-                    shiftsOfTheDay.append(each_shift[0])
+                    # store start time and end times of each shift to shiftsOfTheDay list.
+                    shiftsOfTheDay.append(each_shift)
 
                 else:
                     pass  # do nothing
@@ -106,13 +113,13 @@ def main():
         shiftsOfTheDay = SC.get_desired_shift_dates(desiredShifts, weekNo)
 
     # remove confirmed shifts before looping
-    for confirmed_time in FM.retrieve_datetime_from_file(takenShifts):
+    for confirmed_time in FM.data_file_to_list(takenShifts):
         # check if shift in list
         if confirmed_time in shiftsOfTheDay:
             shiftsOfTheDay.remove(confirmed_time)
-            print("Removing confirmed time: " + str(confirmed_time) + " from list")
+            print("Removing confirmed time: " + SC.datetime_tuple_to_string_format(confirmed_time) + " from list")
         else:  # else clear file, ie start of a new day
-            FM.clear_file(takenShifts)
+            FM.clear_data_file(takenShifts)
             print("Taken shifts file cleared")
 
     # switch to shift listening mode
@@ -165,14 +172,15 @@ def main():
             confirmBtn = BH.grab_shift(shiftToTake, parsedShiftboardTable, LAMONT)
 
             # confirm shift, wait until 1 second before time
-            while (datetime.now() + timedelta(weeks=weekNo)) < (shiftToTake - timedelta(seconds=1)):
+            while (datetime.now() + timedelta(weeks=weekNo)) < (shiftToTake[0] - timedelta(seconds=1)):
                 pass
             # confirm
             BH.confirm_shift(confirmBtn)
 
             # remove confirmed shift from list for this session and record to file
             shiftsOfTheDay.remove(shiftToTake)
-            FM.update_file(takenShifts, shiftToTake)  # record to file, for future sessions
+            FM.append_data(takenShifts, shiftToTake)  # record to file, for future sessions
+            print("Shift transferred to list of taken shifts")
 
             # switch to shift listening mode mode once done
             print("Done.\nListening for shifts...")
@@ -202,7 +210,7 @@ def main():
         pass  # stay in sleep mode
     # wake up sequence
     print("sleep mode deactivated. Waking up at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
-    FM.clear_file(takenShifts)  # clear file that holds taken shifts
+    FM.clear_data_file(takenShifts)  # clear file that holds taken shifts
     main()  # call main to wake the program and listen for shifts
 
 
