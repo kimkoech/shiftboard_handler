@@ -119,22 +119,24 @@ def stop_log():
 def main():
     start_log()
     if debugMode:
+
         # data = datetime(2017, 1, 26, 9)
         clear_file(takenShiftFile)
         # update_file(takenShiftFile, data)
-        data1 = datetime(2018, 1, 22, 9)
-        data2 = datetime(2018, 1, 22, 11)
-        data3 = datetime(2018, 1, 22, 12)
-        data4 = datetime(2018, 1, 22, 13)
-        data5 = datetime(2018, 1, 22, 14)
-        data6 = datetime(2018, 1, 22, 15)
-        data7 = datetime(2018, 1, 22, 17)
+        data1 = datetime(2018, 1, 23, 9)
+        # data2 = datetime(2018, 1, 22, 11)
+        # data3 = datetime(2018, 1, 22, 13)
+        # data4 = datetime(2018, 1, 22, 14)
+        # data5 = datetime(2018, 1, 22, 15)
+        # data6 = datetime(2018, 1, 22, 18)
+        # data7 = datetime(2018, 1, 22, 20)
         update_file(takenShiftFile, data1)
-        update_file(takenShiftFile, data2)
-        update_file(takenShiftFile, data3)
-        update_file(takenShiftFile, data4)
-        update_file(takenShiftFile, data5)
-        update_file(takenShiftFile, data6)
+        # update_file(takenShiftFile, data2)
+        # update_file(takenShiftFile, data3)
+        # update_file(takenShiftFile, data4)
+        # update_file(takenShiftFile, data5)
+        # update_file(takenShiftFile, data6)
+        # update_file(takenShiftFile, data7)
         new = retrieve_datetime_from_file(takenShiftFile)
         print(new)
         print(get_lines(takenShiftFile))
@@ -150,6 +152,7 @@ def main():
             (u'2018-01-09T19:00:00-05:00', u'2018-01-09T19:30:00-05:00'),
             (u'2018-01-09T19:30:00-05:00', u'2018-01-09T20:00:00-05:00'),
         ]
+        # uncomment when you want to write to dailyShiftStore
         # write_data(dailyShiftStore, (datetime(2018, 1, 7), sample))
 
         # test for load non string data

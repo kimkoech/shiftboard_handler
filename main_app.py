@@ -21,8 +21,8 @@ import calendar_manager as CLDM  # local module with calendar API
 debugMode = False
 weekNo = 2
 takenShifts = 'taken_shifts.txt'
-wakeHour = 8  # am
-wakeMinute = 45  # am
+wakeHour = 9  # am
+wakeMinute = 35  # am
 calendarMode = True
 dailyShiftStore = 'daily_shift_store.txt'
 secret_data = 'secret.data'
@@ -65,7 +65,6 @@ def main():
             print("Storage data retrieved!")
 
         else:  # get new data and write to file
-            print("boolean test:", timestamp_storedData == SC.today_raw_date())
             # initiation sequence
             print("Calendar mode active. \nRetrieving data from shiftboard website")
             BH.launch_browser(address)  # go to shiftbaord website
@@ -111,8 +110,10 @@ def main():
         # check if shift in list
         if confirmed_time in shiftsOfTheDay:
             shiftsOfTheDay.remove(confirmed_time)
+            print("Removing confirmed time: " + str(confirmed_time) + " from list")
         else:  # else clear file, ie start of a new day
             FM.clear_file(takenShifts)
+            print("Taken shifts file cleared")
 
     # switch to shift listening mode
     print("listening for shifts...")
@@ -133,7 +134,7 @@ def main():
         elif shiftsOfTheDay == []:
             # exit loop if empty
             if calendarMode:
-                print("You have no free periods today, or there are no available shifts todays")
+                print("You have no free periods today, or there are no more shifts available today")
             else:
                 print("Your schedule is empty today")
             # exit
@@ -193,9 +194,8 @@ def main():
     # extract current date from wakeTime
     wakeTime_year, wakeTime_month, wakeTime_day = SC.date_to_tuple(wakeTime)
     # date at 8:45am on the next day
-    wakeTime = datetime(wakeTime_year, wakeTime_month, wakeTime_day, 8, 45)
+    wakeTime = datetime(wakeTime_year, wakeTime_month, wakeTime_day, wakeHour, wakeMinute)
     # activate sleepmode and wait until 8:45am the next day to wake
-    FM.clear_file(takenShifts)  # clear file that holds taken shifts
     print ("sleep mode activated at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
     # uncomment when ready to commence
     while datetime.now() < wakeTime:
