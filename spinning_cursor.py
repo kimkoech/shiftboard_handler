@@ -1,10 +1,12 @@
 import itertools  # for spinner 1
 import sys  # for spinner 1 and 2
 import time  # for spinner 2
+from file_manager import start_log, stop_log
 
 
 # variables
-char = itertools.cycle(['-', '/', '|', '\\'])
+chars = itertools.cycle(['-', '/', '|', '\\'])
+debugMode = True  # troubleshooting
 
 
 # spinner 1 funcion
@@ -12,7 +14,7 @@ char = itertools.cycle(['-', '/', '|', '\\'])
 # https://stackoverflow.com/questions/4995733/how-to-create-a-spinning-command-line-cursor-using-python
 # requires while loop
 def spinner():
-    sys.stdout.write(next(char))  # write the next character
+    sys.stdout.write(next(chars))  # write the next character
     sys.stdout.flush()                # flush stdout buffer (actual character display)
     sys.stdout.write('\b')            # erase the last written char
 
@@ -34,8 +36,14 @@ def slow_spinner():
 
 # Main entry point for the script.
 def main():
-    while True:
-        spinner()
+    start_log()
+    stop_log()
+    if debugMode:
+        while True:
+            spinner()
+
+    else:
+        pass
 
 
 if __name__ == '__main__':
