@@ -25,8 +25,8 @@ import stdout_GUI as GUI  # gui for display
 debugMode = False
 weekNo = 2
 takenShifts = 'taken_shifts.txt'
-wakeHour = 9  # am
-wakeMinute = 35  # am
+wakeHour = 8  # am
+wakeMinute = 50  # am
 calendarMode = True
 dailyShiftStore = 'daily_shift_store.txt'
 secret_data = 'secret.data'
@@ -52,6 +52,8 @@ else:
 
 # Main entry point for the script.
 def main_x():
+    # startup message
+    print("Program initiated at " + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
 
     # get user input
     try:
@@ -125,8 +127,8 @@ def main_x():
         # get list of dates of desired shifts two weeks from now from scheduler
         shiftsOfTheDay = SC.get_desired_shift_dates(desiredShifts, weekNo)
 
-    # switch to shift listening mode
-    print("listening for shifts...")
+    # switch to shift listening mode and enter loop
+    print("Listening for shifts...")
 
     # Make the program loop forever
     while True:
@@ -134,6 +136,7 @@ def main_x():
         # get approaching shift two weeks from now, (30 seconds earlier)
         shiftToTake = SC.check_if_shift_approching(shiftsOfTheDay, weekNo, 30)
 
+        # if exit button is pressed in GUI
         if GUI.exit_thread:
             BH.exit_sequence()
             break
@@ -141,7 +144,7 @@ def main_x():
         # check if its sleeping time
         elif SC.today_time(wakeHour, wakeMinute) > datetime.now():
             # go to sleep
-            print("sleeping time zzz")
+            print("Sleeping time zzz")
             break
 
         # check if desired shifts is empty
@@ -200,7 +203,7 @@ def main_x():
 
     # print loop exit message
     timestamp = datetime.now()
-    print("loop exit at :" + timestamp.strftime("%b %d %Y %I:%M:%S %p"))
+    print("Loop exit at :" + timestamp.strftime("%b %d %Y %I:%M:%S %p"))
 
     # set arbitrary variable for wakeTime, value will be updated below
     wakeTime = timestamp
@@ -214,14 +217,20 @@ def main_x():
     wakeTime_year, wakeTime_month, wakeTime_day = SC.date_to_tuple(wakeTime)
     # date at 8:45am on the next day
     wakeTime = datetime(wakeTime_year, wakeTime_month, wakeTime_day, wakeHour, wakeMinute)
+    # activate sleepmode and wait until 8:45am the next day to wake
+    print ("Sleep mode activated at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+    # uncomment when ready to commence
+    while datetime.now() < wakeTime:
+        # if exit button pressed
+        if GUI.exit_thread:
+            BH.exit_sequence()
+            break
+        else:
+            pass
+    # if exit button NOT pressed
     if not GUI.exit_thread:
-        # activate sleepmode and wait until 8:45am the next day to wake
-        print ("sleep mode activated at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
-        # uncomment when ready to commence
-        while datetime.now() < wakeTime:
-            pass  # stay in sleep mode
         # wake up sequence
-        print("sleep mode deactivated. Waking up at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+        print("Sleep mode deactivated. Waking up at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
         main_x()  # call main to wake the program and listen for shifts
     else:
         pass

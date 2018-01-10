@@ -40,10 +40,12 @@ from selenium.common.exceptions import TimeoutException
 
 # program global variables
 chromedriver = '/Users/Billy/projects/shiftboard_handler/chromedriver'
-# options = webdriver.ChromeOptions()
-# options.add_argument('headless')        # hide chrome window --headless
-# options.add_argument('window-size=1200x600')
-driver = webdriver.Chrome(chromedriver)  # , chrome_options=options)
+######## comment these out to disable headless mode#########
+options = webdriver.ChromeOptions()
+options.add_argument('headless')        # hide chrome window --headless
+options.add_argument('window-size=1200x600')
+#############################################################
+driver = webdriver.Chrome(chromedriver, chrome_options=options)
 shiftDict = {}
 DebugMode = False
 monthDict = {'Jan': 1,

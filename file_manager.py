@@ -144,6 +144,13 @@ def stop_log():
     logger.close()
 
 
+# logging function for GUI
+def GUI_log(file_name, _data):
+    my_file = open(file_name, "a")
+    my_file.write(str(_data).strip() + "\n")
+    my_file.close()
+
+
 # Main entry point for the script.
 def main():
     start_log()
