@@ -525,7 +525,7 @@ def confirm_shift(confirm_button):
 
 # function to close browser
 def exit_sequence():
-    print("Exit sequence initiated. Closing browser and exiting program.")
+    print("Exit sequence initiated at : " + datetime.now().strftime("%b %d %Y %I:%M:%S %p") + ". Closing browser and exiting program.")
     driver.quit()  # close browser after done
 
 

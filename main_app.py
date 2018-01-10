@@ -27,7 +27,7 @@ from all_colors import TRANSITION_COLORS  # list of all colors
 debugMode = False
 weekNo = 2
 takenShifts = 'taken_shifts.txt'
-wakeHour = 13  # am
+wakeHour = 8  # am
 wakeMinute = 50  # am
 calendarMode = True
 dailyShiftStore = 'daily_shift_store.txt'
@@ -59,8 +59,11 @@ def main_x():
 
     # get user input
     try:
-        if sys.argv[1] == 'clear':
+        # Update storage file?
+        if sys.argv[1].strip().lower() == 'yes':
+            print("Clear command received, clearing storage file...")
             FM.clear_data_file(dailyShiftStore)
+            print("Storage file cleared successfully")
         else:
             pass
     except IndexError:
@@ -240,8 +243,8 @@ def main_x():
     while datetime.now() < wakeTime:
         # if exit button pressed
         if GUI.exit_thread:
-            GUI.exit_success = True  # indicate to GUI that exit was successful
             BH.exit_sequence()
+            GUI.exit_success = True  # indicate to GUI that exit was successful
             break
         else:
             GUI.gray_fade_in()

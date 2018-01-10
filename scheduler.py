@@ -107,7 +107,7 @@ def check_if_shift_approching(schedule_list_of_tuples, delta, decrease_delta):
         shiftEndTime = time[1]
         if (datetime.now() + timedelta(weeks=delta)) >= (shiftStartTime - timedelta(seconds=decrease_delta)):
             time_on_this_date = (timedelta(weeks=delta) + datetime.now())
-            print("Grabbing time approaching for " + date_to_short_hour(shiftStartTime) + "-" + date_to_short_hour(shiftEndTime) + " E.A.T. = " + str(shiftStartTime - time_on_this_date))
+            print("Grabbing time approaching for " + date_to_short_hour(shiftStartTime) + "-" + date_to_short_hour(shiftEndTime) + " in " + str(timedelta.total_seconds(shiftStartTime - time_on_this_date)).split(".")[0] + " seconds")
             return time
         else:
             # troubleshooting

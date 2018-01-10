@@ -60,6 +60,8 @@ class Std_redirector(object):
             FM.GUI_log(logfile, string)
             self.widget.insert(Tk.END, string)
             self.widget.see(Tk.END)
+        else:
+            FM.GUI_log(logfile, string)  # always log to file
 
     def flush(self):
         pass
@@ -69,9 +71,10 @@ def stop_thread():
     global exit_thread
     exit_thread = True
     while not exit_success:
-        time.sleep(.5)  # wait for exit success
-    root.destroy()
-    sys.stdout = ORIG_STDOUT
+        time.sleep(.2)  # wait for exit success
+    else:
+        root.destroy()
+        sys.stdout = ORIG_STDOUT
 
 # test function for the output
 
@@ -152,6 +155,7 @@ class Bar:
 
 # function to simulate color fading
 # for sleep mode
+# takes .97 seconds
 def gray_fade_in():
     for gray in GRAY_COLORS:
         global SLEEPING_BAR_COLOR
@@ -161,6 +165,7 @@ def gray_fade_in():
 
 # function to simulate color fading out
 # for sleep mode
+# takes .97 seconds
 def gray_fade_out():
     for gray in list(reversed(GRAY_COLORS)):
         global SLEEPING_BAR_COLOR
@@ -186,6 +191,7 @@ def display(myfunc):
     # change color
 
     sys.stdout = Std_redirector(text)
+    sys.stderr = Std_redirector(text)
 
     thread1 = threading.Thread(target=myfunc)
     thread1.start()
