@@ -11,6 +11,7 @@
 *.o
 *.so
 *.app
+*.pyc
 
 # Packages #
 ############
