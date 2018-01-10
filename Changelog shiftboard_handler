@@ -1,3 +1,12 @@
+Changelog Jan 10th 2018
+- update all while loops, especially the sleeping one to find out how long the 
+program should sleep for, then send make python sleep for that period of time --DONE
+- make bar animation behave differently in the following cases: when grabbing a 
+shift/retrieving data(speed up), when sleeping (slow down), when listening(normal) --DONE
+
+
+
+
 Changelog Jan 9th 2018
 
 Fixes and additions for shiftboard_handler

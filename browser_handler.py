@@ -41,11 +41,11 @@ from selenium.common.exceptions import TimeoutException
 # program global variables
 chromedriver = '/Users/Billy/projects/shiftboard_handler/chromedriver'
 ######## comment these out to disable headless mode#########
-options = webdriver.ChromeOptions()
-options.add_argument('headless')        # hide chrome window --headless
-options.add_argument('window-size=1200x600')
+# options = webdriver.ChromeOptions()
+# options.add_argument('headless')        # hide chrome window --headless
+# options.add_argument('window-size=1200x600')
 #############################################################
-driver = webdriver.Chrome(chromedriver, chrome_options=options)
+driver = webdriver.Chrome(chromedriver)  # , chrome_options=options)
 shiftDict = {}
 DebugMode = False
 monthDict = {'Jan': 1,
@@ -378,7 +378,7 @@ def remove_taken_shifts(parsed_table_dict):
                 _output_list.append(available_tuple)
             else:
                 # indicate that the shift has already been taken
-                print("Filtering: " + key.strftime("%b %d %Y %I%p") + _shiftDateRange[0] + "-" + _shiftDateRange[1] + " taken by " + inner_Text)
+                print("Filtering: " + key.strftime("%b %d %Y") + " " + _shiftDateRange[0] + "-" + _shiftDateRange[1] + " taken by " + inner_Text)
         # update output dict
         _output_dict[key] = _output_list
     # return final dict
@@ -485,7 +485,7 @@ def grab_shift(date_and_time_tuple, parsed_table, location_of_shift='Lab Assista
             # find shift by comparing shiftStartTime and shiftEndTime to shift hours
             if (shiftStartTime == inputStartHour) and (shiftEndTime == inputEndHour) and (shiftLocation == location_of_shift):
                 # indicate that shift has been found
-                print(shiftStartTime + "-" + shiftEndTime + " : Match found, deploying confirm button...")
+                print(shiftStartTime + "-" + shiftEndTime + " : " + shiftLocation + " : MATCH FOUND, deploying confirm button...")
                 clickElement.click()    # click to grab shift
                 # find "take this shift button"
                 TakeThisShift = patiently_find(driver, element_present, By.XPATH, TakeThisShiftXpath)
@@ -525,6 +525,7 @@ def confirm_shift(confirm_button):
 
 # function to close browser
 def exit_sequence():
+    print("Exit sequence initiated. Closing browser and exiting program.")
     driver.quit()  # close browser after done
 
 

@@ -16,16 +16,18 @@ from datetime import datetime, timedelta
 import browser_handler as BH  # local module for browser control
 import scheduler as SC  # local module for schedule
 import file_manager as FM  # local mdule with file funcions
-import spinning_cursor as SPC  # local module with spinner
+# import spinning_cursor as SPC  # local module with spinner
 import calendar_manager as CLDM  # local module with calendar API
 import sys  # module to get input from user
 import stdout_GUI as GUI  # gui for display
+from all_colors import TRANSITION_COLORS  # list of all colors
+
 
 # program variables
 debugMode = False
 weekNo = 2
 takenShifts = 'taken_shifts.txt'
-wakeHour = 8  # am
+wakeHour = 13  # am
 wakeMinute = 50  # am
 calendarMode = True
 dailyShiftStore = 'daily_shift_store.txt'
@@ -84,6 +86,7 @@ def main_x():
             print("Storage data retrieved!")
 
         else:  # get new data and write to file
+            GUI.BAR_MODE = "loading"
             # initiation sequence
             print("Calendar mode active. \nRetrieving data from shiftboard website")
             BH.launch_browser(address)  # go to shiftbaord website
@@ -129,6 +132,7 @@ def main_x():
 
     # switch to shift listening mode and enter loop
     print("Listening for shifts...")
+    GUI.BAR_MODE = "listening"  # switch display mode
 
     # Make the program loop forever
     while True:
@@ -138,7 +142,6 @@ def main_x():
 
         # if exit button is pressed in GUI
         if GUI.exit_thread:
-            BH.exit_sequence()
             break
 
         # check if its sleeping time
@@ -166,6 +169,8 @@ def main_x():
 
         # run the code below if approaching
         else:
+            # GUI
+            GUI.BAR_MODE = "loading"
 
             # launch browser
             BH.launch_browser(address)
@@ -185,11 +190,20 @@ def main_x():
             # get shift confirm button
             confirmBtn = BH.grab_shift(shiftToTake, parsedShiftboardTable, LAMONT)
 
+            colorChange = 0
             # confirm shift, wait until 1 second before time
             while (datetime.now() + timedelta(weeks=weekNo)) < (shiftToTake[0] - timedelta(seconds=1)):
-                pass
+                # check if program has been aborted
+                if GUI.exit_thread:
+                    break
+                else:
+                    # flashing colors on the bar
+                    GUI.LOADING_BAR_COLOR = TRANSITION_COLORS[colorChange % len(TRANSITION_COLORS)]
+                    colorChange += 1
+
             # confirm
             BH.confirm_shift(confirmBtn)
+            GUI.LOADING_BAR_COLOR = "green"
 
             # remove confirmed shift from list for this session and record to file
             shiftsOfTheDay.remove(shiftToTake)
@@ -198,8 +212,10 @@ def main_x():
 
             # switch to shift listening mode mode once done
             print("Done.\nListening for shifts...")
+            GUI.BAR_MODE = "listening"
             # BH.delay(5)
             # BH.exit_sequence()
+        BH.delay(1)  # delay for 1 second, decrease CPU cycle rate
 
     # print loop exit message
     timestamp = datetime.now()
@@ -219,18 +235,23 @@ def main_x():
     wakeTime = datetime(wakeTime_year, wakeTime_month, wakeTime_day, wakeHour, wakeMinute)
     # activate sleepmode and wait until 8:45am the next day to wake
     print ("Sleep mode activated at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+    GUI.BAR_MODE = "sleeping"
     # uncomment when ready to commence
     while datetime.now() < wakeTime:
         # if exit button pressed
         if GUI.exit_thread:
+            GUI.exit_success = True  # indicate to GUI that exit was successful
             BH.exit_sequence()
             break
         else:
-            pass
+            GUI.gray_fade_in()
+            GUI.gray_fade_out()
+        BH.delay(3)  # decrease CPU cycle rate by sleeeping
     # if exit button NOT pressed
     if not GUI.exit_thread:
         # wake up sequence
         print("Sleep mode deactivated. Waking up at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+        GUI.BAR_MODE = "listening"
         main_x()  # call main to wake the program and listen for shifts
     else:
         pass
