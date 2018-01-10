@@ -78,13 +78,15 @@ grabCSSselector = '.clu.popout.fine'
 dateRangeXpath = '//*[@id="leftapp"]/div[1]/a[2]'
 TakeThisShiftXpath = '//*[@id="rightapp"]/div[5]/div[3]/form/button'
 ConfirmShiftXpath = '//*[@id="assignment"]/table/tbody/tr/td/table/tbody/tr[3]/td/table/tbody/tr/td[2]/button[1]'
-
+clickTextTagName = 'span'
 
 # user variables(can be used to invoke functions from outside this module)
 
 # function that uses WebDriverWait to wait for all elements to load
 # driver can be an element with children
 # conditions are provided above in variables
+
+
 def patiently_find(_driver, condition, locator_by_type, el_locator):
     try:
         wait = WebDriverWait(_driver, FindTimeout)
@@ -340,6 +342,47 @@ def shiftboard_parser(table_row_xpath):
     return converted_shiftDict
 
 
+"""
+# Sample shiftdict
+{<datetime>:    [   (['9am', '11am'], 'Lab Assistance - Lamont', <element>),
+                    (['11am', '12pm'], 'Lab Assistance - Lamont', <element>),
+                    (['12pm', '1pm'], 'Lab Assistance - Lamont', <element>)
+                ]
+}
+#
+"""
+
+
+# function to filter out taken shifts from shiftdict
+# returns shift dict
+def remove_taken_shifts(parsed_table_dict):
+    # variable for output
+    _output_dict = {}
+    # iterate over every key <datetime>
+    for key in parsed_table_dict.keys():
+        _list_shifts = parsed_table_dict[key]
+        # variable to hold each shift
+        _output_list = []
+        # get clickable element as _element
+        for _shiftDateRange, _shiftLocation, _element in _list_shifts:
+            # get text inside <element>, no need for patiently find
+            inner_Text_element = _element.find_element_by_tag_name(clickTextTagName)
+            inner_Text = get_inner_HTML(inner_Text_element)  # get inner html
+            inner_Text = utf8_encoder(inner_Text)  # encode to remove extra characters
+            # find and take just the available shifts
+            if inner_Text == 'Available':
+                # store back in list
+                available_tuple = (_shiftDateRange, _shiftLocation, _element)
+                _output_list.append(available_tuple)
+            else:
+                # indicate that the shift has already been taken
+                print("Filtering: " + key.strftime("%b %d %Y %I%p") + _shiftDateRange[0] + "-" + _shiftDateRange[1] + " taken by " + inner_Text)
+        # update output dict
+        _output_dict[key] = _output_list
+    # return final dict
+    return _output_dict
+
+
 # function to extract day's shifts times as a dict with values in the form of list of tuples
 # delta is an int in weeks
 # return one day's shifts with the day's date as the key
@@ -451,23 +494,26 @@ def grab_shift(date_and_time_tuple, parsed_table, location_of_shift='Lab Assista
                 print('Confirm button deployed at: ' + datetime.now().strftime("%I:%M:%S %p"))
                 return ConfirmShift
 
-            elif (shiftStartTime is not inputStartHour) and (shiftEndTime is not inputEndHour) and (shiftLocation is not location_of_shift):
+            elif (shiftStartTime != inputStartHour) and (shiftEndTime != inputEndHour) and (shiftLocation != location_of_shift):
                 print(shiftStartTime + "-" + shiftEndTime + " : " + shiftLocation + ": Time and Location mismatch, skipping...")
-            elif shiftLocation is not location_of_shift:
+            elif shiftLocation != location_of_shift:
                 print(shiftStartTime + "-" + shiftEndTime + " : " + shiftLocation + ": Location mismatch. Input loaction is unpreferred.")
-            elif (shiftStartTime is not inputStartHour) and (shiftEndTime is not inputEndHour):
-                print(shiftStartTime + "-" + shiftEndTime + " : " + shiftLocation + ": Time mismatch. This is an error.")
+            elif (shiftStartTime != inputStartHour) and (shiftEndTime != inputEndHour):
+                print(shiftStartTime + "-" + shiftEndTime + " : " + shiftLocation + ": Time mismatch. skipping...")
             else:
                 print("Error in grab_shift function of browser_handler: None of the conditions match")
-    else:
+    elif plain_date not in available_shifts:
         print("Date mismatch")
         return None  # return None for error handling
+    else:
+        print("Something went wrong with grab_shift")
+        return None  # return non if all do not match
 
 
 # function to click confirm shift
 def confirm_shift(confirm_button):
     if confirm_button is None:
-        print("shift NOT confirmed: " + datetime.now().strftime("%I:%M:%S %p"))
+        print("shift NOT confirmed, timestamp: " + datetime.now().strftime("%I:%M:%S %p"))
     else:
         confirm_button.click()  # click to confirm shift
         # print confirmation message when ConfirmShift page is stale

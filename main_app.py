@@ -6,7 +6,7 @@ Uses functions defined in the browser_handler module
 Mru:
 Jan 8th 2018    - started implementing calendar mode
                 - imported calendar_manager
-                - replaced file_manager functions from  clear_file to clear_data_fiel
+                - replaced file_manager functions from  clear_file to clear_data_file
                                                         update_file to append_data
                                                         retrieve_datetime_from_file to append_data
 """
@@ -18,7 +18,8 @@ import scheduler as SC  # local module for schedule
 import file_manager as FM  # local mdule with file funcions
 import spinning_cursor as SPC  # local module with spinner
 import calendar_manager as CLDM  # local module with calendar API
-
+import sys  # module to get input from user
+import stdout_GUI as GUI  # gui for display
 
 # program variables
 debugMode = False
@@ -50,7 +51,16 @@ else:
 
 
 # Main entry point for the script.
-def main():
+def main_x():
+
+    # get user input
+    try:
+        if sys.argv[1] == 'clear':
+            FM.clear_data_file(dailyShiftStore)
+        else:
+            pass
+    except IndexError:
+        pass  # ignore this error
 
     # variable to hold dersied shifts start times in a list
     shiftsOfTheDay = []
@@ -79,6 +89,9 @@ def main():
             BH.goto_next_week(weekNo)  # go to weekNo weeks ahead
             # extract table data from shiftboard
             parsedShiftboardTable_for_calendar = BH.shiftboard_parser(BH.tableRowXpath)
+            # remove taken shifts
+            parsedShiftboardTable_for_calendar = BH.remove_taken_shifts(parsedShiftboardTable_for_calendar)
+            print("Shift filtering complete")
             # extract day's shifts in a list of tuples
             extractedDayShifts = BH.extract_day_shift_time(parsedShiftboardTable_for_calendar, weekNo)
             # convert shift time ranges to datetimes and get list of tuples of shifts
@@ -112,16 +125,6 @@ def main():
         # get list of dates of desired shifts two weeks from now from scheduler
         shiftsOfTheDay = SC.get_desired_shift_dates(desiredShifts, weekNo)
 
-    # remove confirmed shifts before looping
-    for confirmed_time in FM.data_file_to_list(takenShifts):
-        # check if shift in list
-        if confirmed_time in shiftsOfTheDay:
-            shiftsOfTheDay.remove(confirmed_time)
-            print("Removing confirmed time: " + SC.datetime_tuple_to_string_format(confirmed_time) + " from list")
-        else:  # else clear file, ie start of a new day
-            FM.clear_data_file(takenShifts)
-            print("Taken shifts file cleared")
-
     # switch to shift listening mode
     print("listening for shifts...")
 
@@ -131,8 +134,12 @@ def main():
         # get approaching shift two weeks from now, (30 seconds earlier)
         shiftToTake = SC.check_if_shift_approching(shiftsOfTheDay, weekNo, 30)
 
+        if GUI.exit_thread:
+            BH.exit_sequence()
+            break
+
         # check if its sleeping time
-        if SC.today_time(wakeHour, wakeMinute) > datetime.now():
+        elif SC.today_time(wakeHour, wakeMinute) > datetime.now():
             # go to sleep
             print("sleeping time zzz")
             break
@@ -151,7 +158,8 @@ def main():
         elif shiftToTake is None:
 
             # keep waiting for shift to approach
-            SPC.spinner()
+            pass
+            # SPC.spinner()
 
         # run the code below if approaching
         else:
@@ -168,6 +176,9 @@ def main():
             # parse shiftboard table
             parsedShiftboardTable = BH.shiftboard_parser(BH.tableRowXpath)
 
+            # remove taken shifts
+            parsedShiftboardTable = BH.remove_taken_shifts(parsedShiftboardTable)
+
             # get shift confirm button
             confirmBtn = BH.grab_shift(shiftToTake, parsedShiftboardTable, LAMONT)
 
@@ -179,8 +190,8 @@ def main():
 
             # remove confirmed shift from list for this session and record to file
             shiftsOfTheDay.remove(shiftToTake)
-            FM.append_data(takenShifts, shiftToTake)  # record to file, for future sessions
-            print("Shift transferred to list of taken shifts")
+            FM.write_data(dailyShiftStore, (SC.today_raw_date(), shiftsOfTheDay))  # update shift store file
+            print("Shift records updated, " + SC.datetime_tuple_to_string_format(shiftToTake) + " removed from listening list")
 
             # switch to shift listening mode mode once done
             print("Done.\nListening for shifts...")
@@ -203,15 +214,21 @@ def main():
     wakeTime_year, wakeTime_month, wakeTime_day = SC.date_to_tuple(wakeTime)
     # date at 8:45am on the next day
     wakeTime = datetime(wakeTime_year, wakeTime_month, wakeTime_day, wakeHour, wakeMinute)
-    # activate sleepmode and wait until 8:45am the next day to wake
-    print ("sleep mode activated at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
-    # uncomment when ready to commence
-    while datetime.now() < wakeTime:
-        pass  # stay in sleep mode
-    # wake up sequence
-    print("sleep mode deactivated. Waking up at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
-    FM.clear_data_file(takenShifts)  # clear file that holds taken shifts
-    main()  # call main to wake the program and listen for shifts
+    if not GUI.exit_thread:
+        # activate sleepmode and wait until 8:45am the next day to wake
+        print ("sleep mode activated at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+        # uncomment when ready to commence
+        while datetime.now() < wakeTime:
+            pass  # stay in sleep mode
+        # wake up sequence
+        print("sleep mode deactivated. Waking up at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+        main_x()  # call main to wake the program and listen for shifts
+    else:
+        pass
+
+
+def main():
+    GUI.display(main_x)
 
 
 if __name__ == '__main__':
