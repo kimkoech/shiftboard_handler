@@ -105,20 +105,22 @@ SIZE = 500
 OFFSET = 550
 canvas = Tk.Canvas(root, width=WIDTH, height=HEIGHT, bg='gray1', highlightthickness=0)
 canvas.pack()
-color = 'green'
+rect_color = 'green'
 
 DEFAULT_BAR_SPEED = 10
+DEFAULT_BAR_COLOR = "green"
 SLEEPING_BAR_COLOR = "SpringGreen4"
 SLEEPING_BAR_SPEED = 2
 LOADING_BAR_SPEED = 40
 LOADING_BAR_COLOR = "green"
+FLASHING_BAR_SPEED = 40
 BAR_MODE = "listening"  # other options, listening, sleeping, grabbing shifts
 ALL_GREENS = [s for s in COLORS if 'green' in s]
 
 
 class Bar:
     def __init__(self):
-        self.shape = canvas.create_rectangle(0, 0, SIZE, SIZE, fill=color)
+        self.shape = canvas.create_rectangle(0, 0, SIZE, SIZE, fill=rect_color)
         self.speedx = DEFAULT_BAR_SPEED  # changed from 3 to 9
         self.speedy = 0  # changed from 3 to 9
         self.active = True
@@ -135,11 +137,17 @@ class Bar:
                 DEFAULT_BAR_SPEED = self.speedx
             if pos[3] >= HEIGHT or pos[1] <= 0:
                 self.speedy *= -1
+            canvas.itemconfig(self.shape, fill=DEFAULT_BAR_COLOR)
         elif BAR_MODE == "loading":
             self.speedx = LOADING_BAR_SPEED
             if pos[0] >= OFFSET:
                 canvas.coords(self.shape, -500, 0, 0, 500)
                 canvas.itemconfig(self.shape, fill=LOADING_BAR_COLOR)
+        elif BAR_MODE == "flashing":
+            self.speedx = FLASHING_BAR_SPEED
+            if pos[0] >= OFFSET:
+                canvas.coords(self.shape, -500, 0, 0, 500)
+                canvas.itemconfig(self.shape, fill=COLORS[randint(0, len(COLORS) - 1)])
         elif BAR_MODE == "sleeping":
             canvas.coords(self.shape, 0, 0, 500, 500)
             canvas.itemconfig(self.shape, fill=SLEEPING_BAR_COLOR)
@@ -180,6 +188,42 @@ def colors_transition():
         global LOADING_BAR_COLOR
         LOADING_BAR_COLOR = color
         time.sleep(.05)
+
+#############################################################################
+
+
+# function to display shift grabbing message
+WELCOME_MSG = '''Shift will be taken in less than 30 seconds. Click below to cancel'''
+WELCOME_DURATION = 2000
+
+
+def cancel_shift():
+    global exit_thread
+    exit_thread = True
+
+
+def blank():
+    pass
+
+
+# variable to hold Toplevel
+top = "empty"
+
+
+# notificatio duration is in millis, _msg is a string, myfunc is a function
+# called when the CANCEL button is clicked.
+def final_shift_notification(notification_duration, _msg, myfunc):
+    global top
+    top = Tk.Toplevel()
+    top.title('Shift Confirmation')
+    top.config(background='gray1')
+    top.geometry("170x170+600+20")
+    Tk.Message(top, text=_msg, padx=20, pady=20, bg='gray1', fg='green').pack()
+    Tk.Button(top, text="CANCEL", command=myfunc, highlightbackground='gray1').pack(side=Tk.LEFT)
+    Tk.Button(top, text="PROCEED", command=top.destroy, highlightbackground='gray1').pack(side=Tk.RIGHT)
+    top.after(notification_duration, top.destroy)
+
+#############################################################################
 
 
 def display(myfunc):

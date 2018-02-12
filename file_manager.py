@@ -26,6 +26,7 @@ recordFile = 'record_file.txt'
 takenShiftFile = 'taken_shifts.txt'
 dailyShiftStore = 'daily_shift_store.txt'
 secret_file = 'secret.data'
+FirstTime = True
 
 logger = open(logfile, 'a')
 
@@ -148,6 +149,10 @@ def stop_log():
 def GUI_log(file_name, _data):
     if _data != "\n":
         my_file = open(file_name, "a")
+        global FirstTime
+        if FirstTime:
+            my_file.write('\n\n')
+            FirstTime = False
         my_file.write(datetime.now().strftime("%b %d %Y %I:%M:%S %p") + " - " + str(_data) + "\n")
         my_file.close()
     else:

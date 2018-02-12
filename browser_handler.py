@@ -37,15 +37,16 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+import urllib  # library used to check for internet connectivity
 
 # program global variables
 chromedriver = '/Users/Billy/projects/shiftboard_handler/chromedriver'
 ######## comment these out to disable headless mode#########
-# options = webdriver.ChromeOptions()
-# options.add_argument('headless')        # hide chrome window --headless
-# options.add_argument('window-size=1200x600')
+options = webdriver.ChromeOptions()
+options.add_argument('headless')        # hide chrome window --headless
+options.add_argument('window-size=1200x600')
 #############################################################
-driver = webdriver.Chrome(chromedriver)  # , chrome_options=options)
+driver = webdriver.Chrome(chromedriver, chrome_options=options)
 shiftDict = {}
 DebugMode = False
 monthDict = {'Jan': 1,
@@ -81,8 +82,18 @@ dateRangeXpath = '//*[@id="leftapp"]/div[1]/a[2]'
 TakeThisShiftXpath = '//*[@id="rightapp"]/div[5]/div[3]/form/button'
 ConfirmShiftXpath = '//*[@id="assignment"]/table/tbody/tr/td/table/tbody/tr[3]/td/table/tbody/tr/td[2]/button[1]'
 clickTextTagName = 'span'
+default_host = 'http://www.harvard.edu'
 
 # user variables(can be used to invoke functions from outside this module)
+
+
+# function that checks for internet connectivity
+def connected(host=default_host):
+    try:
+        urllib.urlopen(host)
+        return True
+    except IOError:
+        return False
 
 # function that uses WebDriverWait to wait for all elements to load
 # driver can be an element with children

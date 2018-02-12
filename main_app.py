@@ -20,7 +20,7 @@ import file_manager as FM  # local mdule with file funcions
 import calendar_manager as CLDM  # local module with calendar API
 import sys  # module to get input from user
 import stdout_GUI as GUI  # gui for display
-from all_colors import TRANSITION_COLORS  # list of all colors
+# from tkMessageBox import askyesno  # uncomment if switching to alternative input method
 
 
 # program variables
@@ -32,17 +32,29 @@ wakeMinute = 50  # am
 calendarMode = True
 dailyShiftStore = 'daily_shift_store.txt'
 secret_data = 'secret.data'
+FirstTimeInitiating = True
 
 # user variables
-email = FM.load_data(secret_data)[0]  # get
-password = FM.load_data(secret_data)[1]
+email = FM.load_data(secret_data)[0]  # get email from file
+password = FM.load_data(secret_data)[1]  # get password from file
 address = 'https://www.shiftboard.com/log-in/'  # shiftboard website address
 
 
 # shift related variables
 desiredShifts = SC.desiredShifts  # shifts to grab
-LAMONT = 'Lab Assistance - Lamont'
+LAMONT = 'LAMONT'
 CABOT = 'CABOT Studios'
+LOCATION = LAMONT
+
+# program functions
+
+
+# fuction to remove shift from shift list and update storage file
+def shift_remover(_shift_to_remove, list_of_shifts):
+    list_of_shifts.remove(_shift_to_remove)
+    FM.write_data(dailyShiftStore, (SC.today_raw_date(), list_of_shifts))  # update shift store file
+    print("Shift records updated, " + SC.datetime_tuple_to_string_format(_shift_to_remove) + " removed from listening list")
+
 
 # troubleshooting variables for tests
 if debugMode:
@@ -55,7 +67,12 @@ else:
 # Main entry point for the script.
 def main_x():
     # startup message
-    print("Program initiated at " + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+    global FirstTimeInitiating
+    if (FirstTimeInitiating):
+        print("Program initiated on " + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+        FirstTimeInitiating = False
+    else:
+        pass
 
     # get user input
     try:
@@ -64,10 +81,27 @@ def main_x():
             print("Clear command received, clearing storage file...")
             FM.clear_data_file(dailyShiftStore)
             print("Storage file cleared successfully")
+            sys.argv = []  # clear input
         else:
             pass
     except IndexError:
         pass  # ignore this error
+
+    '''
+    # Alternative code for requesting user input
+
+    global FirstTimeInitiating
+    if FirstTimeInitiating:
+        if askyesno('Verify', 'Update storage data?'):
+            print("Clear command received, clearing storage file...")
+            FM.clear_data_file(dailyShiftStore)
+            print("Storage file cleared successfully")
+            FirstTimeInitiating = False
+        else:
+            pass  # ignore
+    else:
+        pass  # ignore
+    '''
 
     # variable to hold dersied shifts start times in a list
     shiftsOfTheDay = []
@@ -134,7 +168,7 @@ def main_x():
         shiftsOfTheDay = SC.get_desired_shift_dates(desiredShifts, weekNo)
 
     # switch to shift listening mode and enter loop
-    print("Listening for shifts...")
+    print("Listening for shifts from " + LOCATION + "...")
     GUI.BAR_MODE = "listening"  # switch display mode
 
     # Make the program loop forever
@@ -175,6 +209,18 @@ def main_x():
             # GUI
             GUI.BAR_MODE = "loading"
 
+            # wait for internet connectivity
+            print("Checking for internet connectivity at " + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+            while (not BH.connected()):
+                # check if program has been aborted
+                if GUI.exit_thread:
+                    break
+                else:
+                    pass  # keep waiting for internet connectivity
+
+            # connection successful
+            print("Internet connection established at " + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+
             # launch browser
             BH.launch_browser(address)
 
@@ -191,30 +237,48 @@ def main_x():
             parsedShiftboardTable = BH.remove_taken_shifts(parsedShiftboardTable)
 
             # get shift confirm button
-            confirmBtn = BH.grab_shift(shiftToTake, parsedShiftboardTable, LAMONT)
+            confirmBtn = BH.grab_shift(shiftToTake, parsedShiftboardTable, LOCATION)
 
-            colorChange = 0
-            # confirm shift, wait until 1 second before time
-            while (datetime.now() + timedelta(weeks=weekNo)) < (shiftToTake[0] - timedelta(seconds=1)):
+            # check if get shift confirm button is empty
+            if confirmBtn is None:
+                # remove shift time from list and update record to file
+                print("Could NOT find shift on shiftboard")
+                shift_remover(shiftToTake, shiftsOfTheDay)
+                # then call main
+                main_x()
+            else:
+                pass  # ignore if shift found
+
+            # create function to abort shift grabbing if need be
+            def abort_grabbing():
+                shift_remover(shiftToTake, shiftsOfTheDay)  # remove shift
+                main_x()  # call main to abort
+
+            # abort message
+            ABORT_MESSAGE = SC.datetime_tuple_to_string_format(shiftToTake) + '''\nThis shift will be taken in less than 30 seconds. Click below to cancel'''
+
+            # confirm shift, wait until the time reaches
+            GUI.BAR_MODE = "flashing"  # change bar GUI
+
+            # ask user if shift grabbing should be aborted
+            GUI.final_shift_notification(15000, ABORT_MESSAGE, abort_grabbing)
+
+            while ((datetime.now() + timedelta(weeks=weekNo)) < (shiftToTake[0]) + timedelta(milliseconds=1)):
                 # check if program has been aborted
                 if GUI.exit_thread:
                     break
                 else:
-                    # flashing colors on the bar
-                    GUI.LOADING_BAR_COLOR = TRANSITION_COLORS[colorChange % len(TRANSITION_COLORS)]
-                    colorChange += 1
+                    pass  # ignore
 
             # confirm
             BH.confirm_shift(confirmBtn)
-            GUI.LOADING_BAR_COLOR = "green"
+            GUI.BAR_MODE = "loading"
 
             # remove confirmed shift from list for this session and record to file
-            shiftsOfTheDay.remove(shiftToTake)
-            FM.write_data(dailyShiftStore, (SC.today_raw_date(), shiftsOfTheDay))  # update shift store file
-            print("Shift records updated, " + SC.datetime_tuple_to_string_format(shiftToTake) + " removed from listening list")
+            shift_remover(shiftToTake, shiftsOfTheDay)
 
             # switch to shift listening mode mode once done
-            print("Done.\nListening for shifts...")
+            print("Done.\nListening for shifts from " + LOCATION + "...")
             GUI.BAR_MODE = "listening"
             # BH.delay(5)
             # BH.exit_sequence()
@@ -237,14 +301,16 @@ def main_x():
     # date at 8:45am on the next day
     wakeTime = datetime(wakeTime_year, wakeTime_month, wakeTime_day, wakeHour, wakeMinute)
     # activate sleepmode and wait until 8:45am the next day to wake
-    print ("Sleep mode activated at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
-    GUI.BAR_MODE = "sleeping"
+    if not GUI.exit_thread:
+        print ("Sleep mode activated at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+        GUI.BAR_MODE = "sleeping"
     # uncomment when ready to commence
     while datetime.now() < wakeTime:
         # if exit button pressed
         if GUI.exit_thread:
             BH.exit_sequence()
             GUI.exit_success = True  # indicate to GUI that exit was successful
+            quit()  # exit all python scripts
             break
         else:
             GUI.gray_fade_in()
