@@ -14,9 +14,9 @@ from datetime import datetime, timedelta
 
 # program variables
 debugMode = False
-# user variables
 timeDifference = 13
 addition = False
+# user variables
 
 ###############################################################################
 # program functions
