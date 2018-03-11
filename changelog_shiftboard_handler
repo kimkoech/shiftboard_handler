@@ -1,0 +1,30 @@
+Changelog March 9th 2018 
+
+Make shiftboard handler timezone aware
+- replace all "datetime.now()" with a new function that takes an offset for. The function should be stored in a module called timezone_datetime. It should have a function called now() to return the time now in the specified timezone. ie. timezone_dateteime.now()
+
+
+Changelog Feb 10th 2018
+- add break statement after every call to main_x() to break out of every loop
+- add function that check for internet connectivity and if computer is sleeping
+ and waits if internet is disconnected or if computer is sleeping
+
+
+Changelog Jan 10th 2018
+- update all while loops, especially the sleeping one to find out how long the 
+program should sleep for, then send make python sleep for that period of time --DONE
+- make bar animation behave differently in the following cases: when grabbing a 
+shift/retrieving data(speed up), when sleeping (slow down), when listening(normal) --DONE
+
+
+
+
+Changelog Jan 9th 2018
+
+Fixes and additions for shiftboard_handler
+- get_desired_shift_dates in scheduler make to ouptut tuple list  -- DONE
+- change the way dates are written and retrived by file manager, and cleared --DONE
+- change how check_if_shift_approching in scheduler processes its list of dates, ie get the first date of tuple in schedule list -- DONE
+- update every mathematical instance that uses shiftToTake in main -- DONE
+- change return value of check_if_shift_approaching in scheduler, make it return a tuple -- DONE
+- update grab_shift function to take tuple instead of single datetime --  DONE
