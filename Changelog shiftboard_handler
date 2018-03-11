@@ -1,8 +1,14 @@
-proposed changes
+Changelog March 9th 2018 
+
+Make shiftboard handler timezone aware
+- replace all "datetime.now()" with a new function that takes an offset for. The function should be stored in a module called timezone_datetime. It should have a function called now() to return the time now in the specified timezone. ie. timezone_dateteime.now()
+
+
+Changelog Feb 10th 2018
 - add break statement after every call to main_x() to break out of every loop
 - add function that check for internet connectivity and if computer is sleeping
  and waits if internet is disconnected or if computer is sleeping
-- change the implementation of 
+
 
 Changelog Jan 10th 2018
 - update all while loops, especially the sleeping one to find out how long the 

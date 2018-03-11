@@ -44,7 +44,7 @@ address = 'https://www.shiftboard.com/log-in/'  # shiftboard website address
 desiredShifts = SC.desiredShifts  # shifts to grab
 LAMONT = 'LAMONT'
 CABOT = 'CABOT Studios'
-LOCATION = LAMONT
+LOCATION = CABOT
 
 # program functions
 
