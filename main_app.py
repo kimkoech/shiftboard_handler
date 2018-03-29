@@ -21,6 +21,7 @@ import calendar_manager as CLDM  # local module with calendar API
 import sys  # module to get input from user
 import stdout_GUI as GUI  # gui for display
 # from tkMessageBox import askyesno  # uncomment if switching to alternative input method
+import timezone_datetime as TZDT
 
 
 # program variables
@@ -33,6 +34,7 @@ calendarMode = True
 dailyShiftStore = 'daily_shift_store.txt'
 secret_data = 'secret.data'
 FirstTimeInitiating = True
+shift_check_date = TZDT.now() + timedelta(weeks=weekNo)
 
 # user variables
 email = FM.load_data(secret_data)[0]  # get email from file
@@ -44,7 +46,7 @@ address = 'https://www.shiftboard.com/log-in/'  # shiftboard website address
 desiredShifts = SC.desiredShifts  # shifts to grab
 LAMONT = 'LAMONT'
 CABOT = 'CABOT Studios'
-LOCATION = CABOT
+LOCATION = LAMONT  # system default for location
 
 # program functions
 
@@ -69,7 +71,7 @@ def main_x():
     # startup message
     global FirstTimeInitiating
     if (FirstTimeInitiating):
-        print("Program initiated on " + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+        print("Program initiated on " + TZDT.now().strftime("%b %d %Y %I:%M:%S %p"))
         FirstTimeInitiating = False
     else:
         pass
@@ -77,13 +79,24 @@ def main_x():
     # get user input
     try:
         # Update storage file?
-        if sys.argv[1].strip().lower() == 'yes':
+        if sys.argv[1].lower().find('yes') != -1:
             print("Clear command received, clearing storage file...")
             FM.clear_data_file(dailyShiftStore)
             print("Storage file cleared successfully")
-            sys.argv = []  # clear input
         else:
             pass
+        # specify location
+        global LOCATION
+        if sys.argv[1].lower().find('lamont') != -1:
+            print("Specified location: LAMONT")
+            LOCATION = LAMONT
+        elif sys.argv[1].lower().find('cabot') != -1:
+            print("Specified location: CABOT")
+            LOCATION = CABOT
+        else:
+            print("Location not specified.")  # pass if location not specified
+
+        sys.argv = []  # clear input
     except IndexError:
         pass  # ignore this error
 
@@ -182,7 +195,7 @@ def main_x():
             break
 
         # check if its sleeping time
-        elif SC.today_time(wakeHour, wakeMinute) > datetime.now():
+        elif SC.today_time(wakeHour, wakeMinute) > TZDT.now():
             # go to sleep
             print("Sleeping time zzz")
             break
@@ -191,9 +204,9 @@ def main_x():
         elif shiftsOfTheDay == []:
             # exit loop if empty
             if calendarMode:
-                print("You have no free periods today, or there are no more shifts available today")
+                print("You have no free periods or there are no more shifts available on \n" + shift_check_date.strftime("%b %d %Y"))
             else:
-                print("Your schedule is empty today")
+                print("Your schedule is empty on " + shift_check_date.strftime("%b %d %Y"))
             # exit
             break
 
@@ -210,7 +223,7 @@ def main_x():
             GUI.BAR_MODE = "loading"
 
             # wait for internet connectivity
-            print("Checking for internet connectivity at " + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+            print("Checking for internet connectivity at " + TZDT.now().strftime("%b %d %Y %I:%M:%S %p"))
             while (not BH.connected()):
                 # check if program has been aborted
                 if GUI.exit_thread:
@@ -219,7 +232,7 @@ def main_x():
                     pass  # keep waiting for internet connectivity
 
             # connection successful
-            print("Internet connection established at " + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+            print("Internet connection established at " + TZDT.now().strftime("%b %d %Y %I:%M:%S %p"))
 
             # launch browser
             BH.launch_browser(address)
@@ -263,7 +276,7 @@ def main_x():
             # ask user if shift grabbing should be aborted
             GUI.final_shift_notification(15000, ABORT_MESSAGE, abort_grabbing)
 
-            while ((datetime.now() + timedelta(weeks=weekNo)) < (shiftToTake[0]) + timedelta(milliseconds=1)):
+            while ((TZDT.now() + timedelta(weeks=weekNo)) < (shiftToTake[0]) + timedelta(milliseconds=1)):
                 # check if program has been aborted
                 if GUI.exit_thread:
                     break
@@ -285,13 +298,13 @@ def main_x():
         BH.delay(1)  # delay for 1 second, decrease CPU cycle rate
 
     # print loop exit message
-    timestamp = datetime.now()
+    timestamp = TZDT.now()
     print("Loop exit at :" + timestamp.strftime("%b %d %Y %I:%M:%S %p"))
 
     # set arbitrary variable for wakeTime, value will be updated below
     wakeTime = timestamp
     # find wake up time by increasing timestamp by 1 day, fix this with if statements
-    if SC.today_time(wakeHour, wakeMinute) < datetime.now() < SC.today_time(23, 59):
+    if SC.today_time(wakeHour, wakeMinute) < TZDT.now() < SC.today_time(23, 59):
         wakeTime = timestamp + timedelta(days=1)
     else:
         pass  # dont add a day ie wake up in the morning the same day
@@ -302,10 +315,10 @@ def main_x():
     wakeTime = datetime(wakeTime_year, wakeTime_month, wakeTime_day, wakeHour, wakeMinute)
     # activate sleepmode and wait until 8:45am the next day to wake
     if not GUI.exit_thread:
-        print ("Sleep mode activated at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+        print ("Sleep mode activated at :" + TZDT.now().strftime("%b %d %Y %I:%M:%S %p"))
         GUI.BAR_MODE = "sleeping"
     # uncomment when ready to commence
-    while datetime.now() < wakeTime:
+    while TZDT.now() < wakeTime:
         # if exit button pressed
         if GUI.exit_thread:
             BH.exit_sequence()
@@ -319,7 +332,7 @@ def main_x():
     # if exit button NOT pressed
     if not GUI.exit_thread:
         # wake up sequence
-        print("Sleep mode deactivated. Waking up at :" + datetime.now().strftime("%b %d %Y %I:%M:%S %p"))
+        print("Sleep mode deactivated. Waking up at :" + TZDT.now().strftime("%b %d %Y %I:%M:%S %p"))
         GUI.BAR_MODE = "listening"
         main_x()  # call main to wake the program and listen for shifts
     else:

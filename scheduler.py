@@ -17,6 +17,7 @@ Jan 9th 2018 - added date_to_short_hour
 ###############################################################################
 # import modules
 from datetime import datetime, timedelta
+import timezone_datetime as TZDT
 
 # program variables
 # list with dates and times formated in datetime format
@@ -60,13 +61,13 @@ def date_to_tuple(date_and_time):
 
 # function that returns today's raw date
 def today_raw_date():
-    _y, _m, _d = date_to_tuple(datetime.now())
+    _y, _m, _d = date_to_tuple(TZDT.now())
     return datetime(_y, _m, _d)
 
 
 # function that takes time and creates datetime of today
 def today_time(_hour, _minute):
-    _year, _month, _day = date_to_tuple(datetime.now())
+    _year, _month, _day = date_to_tuple(TZDT.now())
     return datetime(_year, _month, _day, _hour, _minute)
 
 
@@ -76,7 +77,7 @@ def get_desired_shift_dates(schedule_dict, delta):
     # variable to hold output
     shifts_list = []
     # get time now
-    timeNow = datetime.now()
+    timeNow = TZDT.now()
     # add delta weeks to date
     desiredWeekday = timeNow + timedelta(weeks=delta)  # adds delta weeks
     # get year, month and day for desiredWeekday
@@ -105,8 +106,8 @@ def check_if_shift_approching(schedule_list_of_tuples, delta, decrease_delta):
     for time in schedule_list_of_tuples:
         shiftStartTime = time[0]
         shiftEndTime = time[1]
-        if (datetime.now() + timedelta(weeks=delta)) >= (shiftStartTime - timedelta(seconds=decrease_delta)):
-            time_on_this_date = (timedelta(weeks=delta) + datetime.now())
+        if (TZDT.now() + timedelta(weeks=delta)) >= (shiftStartTime - timedelta(seconds=decrease_delta)):
+            time_on_this_date = (timedelta(weeks=delta) + TZDT.now())
             print("Grabbing time approaching for " + date_to_short_hour(shiftStartTime) + "-" + date_to_short_hour(shiftEndTime) + " in " + str(timedelta.total_seconds(shiftStartTime - time_on_this_date)).split(".")[0] + " seconds")
             return time
         else:

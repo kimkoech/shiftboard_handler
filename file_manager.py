@@ -16,6 +16,7 @@ Jan 8th 2018    - deleted one of the .rstrip() from remove_extras
 from datetime import datetime
 import pickle  # module for writing non-string data to files
 import sys  # module to print to log file
+import timezone_datetime as TZDT
 
 # program variables
 debugMode = False  # troubleshooting
@@ -133,15 +134,15 @@ def data_file_to_list(file_name):
 def start_log():
     print("Log mode active. Redirecting ouput to logfile")
     sys.stdout = logger
-    print("\n New log session : " + datetime.now().strftime("%b %d %Y %I:%M:%S %p") + "\n")
+    print("\n New log session : " + TZDT.now().strftime("%b %d %Y %I:%M:%S %p") + "\n")
 
 # function to turn of logging
 
 
 def stop_log():
-    print("\n End of log session : " + datetime.now().strftime("%b %d %Y %I:%M:%S %p") + "\n")
+    print("\n End of log session : " + TZDT.now().strftime("%b %d %Y %I:%M:%S %p") + "\n")
     sys.stdout = ORIG_STDOUT
-    print("Log mode deactivated : " + datetime.now().strftime("%b %d %Y %I:%M:%S %p") + "\n")
+    print("Log mode deactivated : " + TZDT.now().strftime("%b %d %Y %I:%M:%S %p") + "\n")
     logger.close()
 
 
@@ -153,7 +154,7 @@ def GUI_log(file_name, _data):
         if FirstTime:
             my_file.write('\n\n')
             FirstTime = False
-        my_file.write(datetime.now().strftime("%b %d %Y %I:%M:%S %p") + " - " + str(_data) + "\n")
+        my_file.write(TZDT.now().strftime("%b %d %Y %I:%M:%S %p") + " - " + str(_data) + "\n")
         my_file.close()
     else:
         pass  # ignore \n

@@ -38,6 +38,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import urllib  # library used to check for internet connectivity
+import timezone_datetime as TZDT
 
 # program global variables
 chromedriver = '/Users/Billy/projects/shiftboard_handler/chromedriver'
@@ -52,7 +53,7 @@ DebugMode = False
 monthDict = {'Jan': 1,
              'Feb': 2,
              'Mar': 3,
-             'Apr': 4,
+             'Ap': 4,
              'May': 5,
              'Jun': 6,
              'Jul': 7,
@@ -504,7 +505,7 @@ def grab_shift(date_and_time_tuple, parsed_table, location_of_shift='Lab Assista
                 # find "confirm shift" button
                 ConfirmShift = patiently_find(driver, element_present, By.XPATH, ConfirmShiftXpath)
                 # Return confirm shift button
-                print('Confirm button deployed at: ' + datetime.now().strftime("%I:%M:%S %p"))
+                print('Confirm button deployed at: ' + TZDT.now().strftime("%I:%M:%S %p"))
                 return ConfirmShift
 
             elif (shiftStartTime != inputStartHour) and (shiftEndTime != inputEndHour) and (shiftLocation != location_of_shift):
@@ -526,17 +527,17 @@ def grab_shift(date_and_time_tuple, parsed_table, location_of_shift='Lab Assista
 # function to click confirm shift
 def confirm_shift(confirm_button):
     if confirm_button is None:
-        print("shift NOT confirmed, timestamp: " + datetime.now().strftime("%I:%M:%S %p"))
+        print("shift NOT confirmed, timestamp: " + TZDT.now().strftime("%I:%M:%S %p"))
     else:
         confirm_button.click()  # click to confirm shift
         # print confirmation message when ConfirmShift page is stale
         wait_for_stale_elements(driver, confirm_button)
-        print('Shift confirmed at: ' + datetime.now().strftime("%I:%M:%S %p"))
+        print('Shift confirmed at: ' + TZDT.now().strftime("%I:%M:%S %p"))
 
 
 # function to close browser
 def exit_sequence():
-    print("Exit sequence initiated at : " + datetime.now().strftime("%b %d %Y %I:%M:%S %p") + ". Closing browser and exiting program.")
+    print("Exit sequence initiated at : " + TZDT.now().strftime("%b %d %Y %I:%M:%S %p") + ". Closing browser and exiting program.")
     driver.quit()  # close browser after done
 
 
