@@ -515,7 +515,7 @@ def grab_shift(date_and_time_tuple, parsed_table, location_of_shift='Lab Assista
             elif (shiftStartTime != inputStartHour) and (shiftEndTime != inputEndHour):
                 print(shiftStartTime + "-" + shiftEndTime + " : " + shiftLocation + ": Time mismatch. skipping...")
             else:
-                print("Error in grab_shift function of browser_handler: None of the conditions match")
+                print(shiftStartTime + "-" + shiftEndTime + " : " + shiftLocation + ": Error in grab_shift function of browser_handler: None of the conditions match")
     elif plain_date not in available_shifts:
         print("Date mismatch")
         return None  # return None for error handling

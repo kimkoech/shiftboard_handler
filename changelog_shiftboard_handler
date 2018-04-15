@@ -1,3 +1,10 @@
+Changelog March 29th 2018
+- Handle all attribute errors by making a call to 'main_x'
+- Handle all TimeoutExceptions by making a call to 'main_x'
+- Handle all WebDriverException by making a call to 'main_x'
+Info on error handling: https://wiki.python.org/moin/HandlingExceptions
+
+
 Changelog March 9th 2018 
 
 Make shiftboard handler timezone aware
@@ -12,7 +19,7 @@ Changelog Feb 10th 2018
 
 Changelog Jan 10th 2018
 - update all while loops, especially the sleeping one to find out how long the 
-program should sleep for, then send make python sleep for that period of time --DONE
+program should sleep for, then make python sleep for that period of time --DONE
 - make bar animation behave differently in the following cases: when grabbing a 
 shift/retrieving data(speed up), when sleeping (slow down), when listening(normal) --DONE
 

@@ -135,6 +135,13 @@ def main_x():
             shiftsOfTheDay = storedData[1]
             print("Storage data retrieved!")
 
+            # Show retrieved data on GUI
+            print("Today's available shifts:")
+            for each_tuple in shiftsOfTheDay:
+                print(SC.datetime_tuple_to_string_format(each_tuple))
+            if shiftsOfTheDay == []:  # print none if no shifts available
+                print(None)
+
         else:  # get new data and write to file
             GUI.BAR_MODE = "loading"
             # initiation sequence

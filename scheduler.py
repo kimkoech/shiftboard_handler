@@ -44,7 +44,7 @@ desiredShifts = {'Sun': [],
 
 def datetime_tuple_to_string_format(datetime_tuple):
     start_date = datetime_tuple[0].strftime("%b %d %Y %I%p")
-    end_date = datetime_tuple[1].strftime("%b %d %Y %I%p")
+    end_date = datetime_tuple[1].strftime("%I%p")
     return start_date + " to " + end_date
 
 
